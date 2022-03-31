@@ -1,110 +1,98 @@
-const canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
-let ballRadius = 20;
-let posX = canvas.width/2;
-let speedX = 10;
-let posY = 20;
-let speedY = 17;
-const paddleHeight = 10;
-const paddleWidth = 75;
-let paddleX = (canvas.width-paddleWidth)/2; //definimos el punto en X donde se dibuja la raqueta
-let rightPressed = false;
-let leftPressed = false;
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const ground = new Image();
+ground.src = "assets/ground.png";
 
-function drawPaddle() {
-    ctx.beginPath();
-    ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
-    ctx.fillStyle = "#0095DD";
-    ctx.fill();
-    ctx.closePath();
+const foodImg = new Image();
+foodImg.src = "assets/apple.png";
+let box = 32;
+
+let score = 0;
+
+let food = {
+	x: Math.floor((Math.random() * 17 + 1)) * box,
+	y: Math.floor((Math.random() * 15 + 3)) * box,
+};
+
+let snake = [];
+snake[0] = {
+	x: 9 * box,
+	y: 10 * box
+};
+
+document.addEventListener("keydown", direction);
+
+let dir;
+
+function direction(event) {
+	if(event.keyCode == 37 && dir != "right")
+		dir = "left";
+	else if(event.keyCode == 38 && dir != "down")
+		dir = "up";
+	else if(event.keyCode == 39 && dir != "left")
+		dir = "right";
+	else if(event.keyCode == 40 && dir != "up")
+		dir = "down";
 }
 
-function drawBall() {
-    if (posY + speedY > canvas.height) {
-        speedY = -17;
-    }else if (posX + speedX >canvas.width) {
-        speedX = -10;
-    }else if (posX + speedX <0) {
-        speedX = 10;
-    }else if (posY + speedY <0) {
-        speedY = 17;
-    }
-       
-    ctx.beginPath();
-    ctx.arc(posX, posY, ballRadius, 0, Math.PI*2, false);
-    ctx.fillStyle = "red";
-    ctx.fill();
-    ctx.closePath();
+function eatTail(head, arr) {
+	for(let i = 0; i < arr.length; i++) {
+		if(head.x == arr[i].x && head.y == arr[i].y)
+			clearInterval(game);
+            
+	}
 }
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawBall();
-    drawPaddle();
-    
-    if(posX + speedX > canvas.width-ballRadius || posX + speedX < ballRadius) {
-        speedX = -speedX;
-    }
-    if(posY + speedY < ballRadius) {
-        speedY = -speedY;
-    }
-    else if(posY + speedY > canvas.height-ballRadius) {
-        if(posX > paddleX && posX < paddleX + paddleWidth) {
-            speedY = -speedX;
+
+function drawGame() {
+	ctx.drawImage(ground, 0, 0);
+
+	ctx.drawImage(foodImg, food.x, food.y);
+
+	for(let i = 0; i < snake.length; i++) {
+		ctx.fillStyle = i == 0 ? "green" : "black";
+		ctx.fillRect(snake[i].x, snake[i].y, box, box);
+	}
+
+	ctx.fillStyle = "white";
+	ctx.font = "50px Arial";
+	ctx.fillText(score, box * 2.5, box * 1.7);
+
+	let snakeX = snake[0].x;
+	let snakeY = snake[0].y;
+
+	if(snakeX == food.x && snakeY == food.y) {
+		score++;
+		food = {
+			x: Math.floor((Math.random() * 17 + 1)) * box,
+			y: Math.floor((Math.random() * 15 + 3)) * box,
+		};
+	} else
+		snake.pop();
+
+	if(snakeX < box || snakeX > box * 17
+		|| snakeY < 3 * box || snakeY > box * 17){
+            clearInterval(game);
+            let looser = document.getElementById("result");
+            let container = document.createElement("p");
+            container.innerHTML=`You have lost. You score is ${score}`;
+            container.style.backgroundColor = "yellow"; 
+            looser.appendChild(container);
+            
         }
-        else {
-            alert("GAME OVER!!!!!    Pulsa aceptar para jugar otra vez");
-            document.location.reload();
-            clearInterval(interval); // Needed for Chrome to end game
-        }
-    }
-    
-    if(rightPressed && paddleX < canvas.width-paddleWidth) {
-        paddleX += 10;
-    }
-    else if(leftPressed && paddleX > 0) {
-        paddleX -= 10;
-    }
-    
-    posX += speedX;
-    posY += speedY;
-}
- /* function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawBall();
-    drawPaddle();
-    posX += speedX;
-    posY += speedY;
-    if(rightPressed && paddleX < canvas.width-paddleWidth) { //Если нажата стрелка влево, то ракетка будет двигаться на 7 пикселей влев
-        paddleX += 7;
-    }
-    else if(leftPressed && paddleX > 0) {
-        paddleX -= 7;// а если нажата стрелка вправо то на 7 пикселей вправо
-    }
 
+	if(dir == "left") snakeX -= box;
+	if(dir == "right") snakeX += box;
+	if(dir == "up") snakeY -= box;
+	if(dir == "down") snakeY += box;
 
-    
- } */
+	let newHead = {
+		x: snakeX,
+		y: snakeY
+	};
 
- 
- document.addEventListener("keydown", keyDown, false);
- document.addEventListener("keyup", keyUp, false);
+	eatTail(newHead, snake);
 
-function keyDown(e) {   //presionamos la tecla
-    if(e.keyCode == 39) {
-        rightPressed = true;
-    }
-    else if(e.keyCode == 37) {
-        leftPressed = true;
-    }
+	snake.unshift(newHead);
 }
 
-function keyUp(e) {
-    if(e.keyCode == 39) {
-        rightPressed = false;
-    }
-    else if(e.keyCode == 37) {
-        leftPressed = false;
-    }
-}
-
-let interval = setInterval(draw, 50);
+let game = setInterval(drawGame, 150);

@@ -4,17 +4,17 @@
     padding: 0;
     box-sizing: border-box;
 }
-body {
-    background-color: rgb(216, 218, 219);
-    border: 1px solid green;
-}
-#canvas {
-    border: 1px solid red;
-    display: block;
-    margin: 2% auto;
+h1 {
+    text-align: center;
+    margin-top: 1em;
     
 }
-h1{
-    margin: 5%;
+canvas {
+    display: block;
+    margin: 3em auto;
+}
+#result {
+    width: 50%;
+    margin: 0 auto;
     text-align: center;
 }
